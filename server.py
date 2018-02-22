@@ -5,22 +5,16 @@ class Server:
 	clients = {}
 
 	def client_left(self,client, server):
-	    msg = "Client (%s) left" % client['id']
-	    print (msg)
 	    try:
 	        self.clients.pop(client['id'])
 	    except:
-	        print ("Error in removing client %s" % client['id'])
+	        pass
 	    #for cl in self.clients.values():
 	        #server.send_message(cl, msg)
 
 
 	def new_client(self,client, server):
-	    msg = "New client (%s) connected" % client['id']
-	    print (msg)
-	    #for cl in self.clients.values():
-	        #server.send_message(cl, msg)
-	    self.clients[client['id']] = client
+		self.clients[client['id']] = client
 
 
 	def msg_received(self,client, server, msg):

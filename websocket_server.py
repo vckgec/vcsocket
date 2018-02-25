@@ -130,6 +130,7 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
         pass
 
     def _new_client_(self, handler):
+        print(handler.client_address)
         self.id_counter += 1
         client = {
             'id': self.id_counter,

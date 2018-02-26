@@ -174,10 +174,6 @@ class BaseServer:
         May be overridden.
         """
         pass
-    def thread_start(self):
-        
-        print("k")
-        
 
     def serve_forever(self, poll_interval=0.5):
         #threading.Timer(0.0,self.serve_forever,args=(poll_interval,)).start()

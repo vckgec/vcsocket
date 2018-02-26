@@ -113,7 +113,7 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
     daemon_threads = True  # comment to keep threads alive until finished
 
     clients = []
-    id_counter = 0
+    id_counter = 1
 
     def __init__(self, port, host='127.0.0.1', loglevel=logging.WARNING):
         logger.setLevel(loglevel)
@@ -129,14 +129,15 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
     def _pong_received_(self, handler, msg):
         pass
 
-    def _new_client_(self, handler):
-        print(handler.client_address)
-        self.id_counter += 1
+    def _new_client_(self, handler,query):
+        if not query and query != 'apikey=master':
+            self.id_counter += 1 
         client = {
-            'id': self.id_counter,
+            'id': self.id_counter if not query and query != 'apikey=master' else 1,
             'handler': handler,
             'address': handler.client_address
         }
+        print(client['id'])
         self.clients.append(client)
         self.new_client(client, self)
 
@@ -293,6 +294,7 @@ class WebSocketHandler(StreamRequestHandler):
 
     def handshake(self):
         message = self.request.recv(1024).decode().strip()
+        query = re.search('apikey[^\s]*', message)
         upgrade = re.search('\nupgrade[\s]*:[\s]*websocket', message.lower())
         if not upgrade:
             self.keep_alive = False
@@ -307,7 +309,7 @@ class WebSocketHandler(StreamRequestHandler):
         response = self.make_handshake_response(key)
         self.handshake_done = self.request.send(response.encode())
         self.valid_client = True
-        self.server._new_client_(self)
+        self.server._new_client_(self,query)
 
     def make_handshake_response(self, key):
         return \

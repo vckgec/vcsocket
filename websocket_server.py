@@ -137,7 +137,6 @@ class WebsocketServer(ThreadingMixIn, TCPServer, API):
             'handler': handler,
             'address': handler.client_address
         }
-        print(client['id'])
         self.clients.append(client)
         self.new_client(client, self)
 

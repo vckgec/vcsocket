@@ -18,7 +18,11 @@ class Server:
             message = json.loads(msg)
             server.send_message(self.clients[int(message['id'])], json.dumps(message['message']))
         else:
-            server.send_message(self.clients[1],json.dumps({'id':client['id'],'message':msg}))
+            try:
+                server.send_message(self.clients[1],json.dumps({'id':client['id'],'message':msg}))
+            except:
+                server.send_message(client,'Main Client Not Found')
+                
 
     def __init__(self,ip,port):
         server = WebsocketServer(port,ip)

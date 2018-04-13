@@ -16,7 +16,7 @@ class Server:
     def msg_received(self,client, server, msg):
         if client['id']==1:
             message = json.loads(msg)
-            server.send_message(self.clients[int(message['id'])], json.dumps(message['message']))
+            server.send_message(self.clients[int(message['reply_channel'])], json.dumps(message['message']))
         else:
             try:
                 server.send_message(self.clients[1],json.dumps({'reply_channel':client['id'],'message':msg}))

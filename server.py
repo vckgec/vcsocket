@@ -19,7 +19,7 @@ class Server:
             server.send_message(self.clients[int(message['id'])], json.dumps(message['message']))
         else:
             try:
-                server.send_message(self.clients[1],json.dumps({'id':client['id'],'message':msg}))
+                server.send_message(self.clients[1],json.dumps({'reply_channel':client['id'],'message':msg}))
             except:
                 server.send_message(client,'Main Client Not Found')
                 

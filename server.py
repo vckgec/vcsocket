@@ -21,7 +21,7 @@ class Server:
             try:
                 server.send_message(self.clients[1],json.dumps({'reply_channel':client['id'],'message':msg}))
             except:
-                server.send_message(client,'Main Client Not Found')
+                server.send_message(client,'Head client not found')
                 
 
     def __init__(self,ip,port):

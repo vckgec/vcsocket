@@ -28,9 +28,10 @@ class P2PServer:
             conn,addr = s.accept()
             print(addr)
             conn.send(self.addressToMessage(addr))
-            print(conn.recv(1024))
-            client_private_address = self.messageToAddress(conn.recv(1024))
-            self.clients.append(self.Client(conn,client_private_address,addr))
+            msg = conn.recv(1024)
+            if msg:
+                client_private_address = self.messageToAddress(msg)
+                self.clients.append(self.Client(conn,client_private_address,addr))
 
         self.clients[0].conn.send(self.clients[1].sendTwoEndpoint())
         self.clients[1].conn.send(self.clients[0].sendTwoEndpoint())

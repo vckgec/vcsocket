@@ -24,7 +24,7 @@ class P2PServer:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.bind(addr)
         s.listen(5)
-        while len(self.clients)<2:
+        while True:
             conn,addr = s.accept()
             print(addr)
             conn.send(self.addressToMessage(addr))
@@ -32,13 +32,14 @@ class P2PServer:
             if msg:
                 client_private_address = self.messageToAddress(msg)
                 self.clients.append(self.Client(conn,client_private_address,addr))
-
-        self.clients[0].conn.send(self.clients[1].sendTwoEndpoint())
-        self.clients[1].conn.send(self.clients[0].sendTwoEndpoint())
-        
-        del self.clients
-        conn.close()
-        print("Done")
+            print(len(self.clients))
+            if len(self.clients)==2:
+                self.clients[0].conn.send(self.clients[1].sendTwoEndpoint())
+                self.clients[1].conn.send(self.clients[0].sendTwoEndpoint())
+                self.clients = []
+                conn.close()
+                print("Done")
+    
 
 # if __name__ == "__main__":
 #     server = P2PServer(('192.168.137.1',8080))

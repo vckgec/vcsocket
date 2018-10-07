@@ -1,33 +1,48 @@
-from websocket_server import WebsocketServer
-import json
-class Server:
-    clients = {}
+import socket
+class P2PServer:
+    class Client:
+        def __init__(self, conn, private_addr, public_addr):
+            self.conn = conn
+            self.private_addr = private_addr
+            self.public_addr = public_addr
 
-    def client_left(self,client, server):
-        try:
-            self.clients.pop(client['id'])
-        except:
-            pass
+        def addressToMessage(self, addr):
+            return '{}:{}'.format(addr[0], str(addr[1])).encode()
 
-    def new_client(self,client, server):
-        self.clients[client['id']] = client
+        def sendTwoEndpoint(self):
+            return self.addressToMessage(self.private_addr) + b'|' + self.addressToMessage(self.public_addr)
+
+    def addressToMessage(self, addr):
+        return '{}:{}'.format(addr[0], str(addr[1])).encode('utf-8')
+
+    def messageToAddress(self, msg):
+        ip, port = msg.decode('utf-8').strip().split(':')
+        return (ip, int(port))
+
+    def __init__(self,addr):
+        self.clients = []
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(addr)
+        s.listen(5)
+        while len(self.clients)<2:
+            conn,addr = s.accept()
+            print(addr)
+            conn.send(self.addressToMessage(addr))
+            client_private_address = self.messageToAddress(conn.recv(1024))
+            self.clients.append(self.Client(conn,client_private_address,addr))
+
+        self.clients[0].conn.send(self.clients[1].sendTwoEndpoint())
+        self.clients[1].conn.send(self.clients[0].sendTwoEndpoint())
+        
+        del self.clients
+        conn.close()
+        print("Done")
+
+# if __name__ == "__main__":
+#     server = P2PServer(('192.168.137.1',8080))
 
 
-    def msg_received(self,client, server, msg):
-        if client['id']==1:
-            message = json.loads(msg)
-            server.send_message(self.clients[int(message['reply_channel'])], json.dumps(message['message']))
-        else:
-            try:
-                server.send_message(self.clients[1],json.dumps({'reply_channel':client['id'],'message':msg}))
-            except:
-                server.send_message(client,'Head client not found')
-                
+        
+        
 
-    def __init__(self,ip,port):
-        server = WebsocketServer(port,ip)
-        server.set_fn_client_left(self.client_left)
-        server.set_fn_new_client(self.new_client)
-        server.set_fn_message_received(self.msg_received)
-        server.run_forever()
 

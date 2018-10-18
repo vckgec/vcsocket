@@ -25,7 +25,7 @@ class Server:
         while True:
             conn, addr = s.accept()
             conn.recv(1024)
-            conn.send((self.generate_headers(200)+b'Hi I am in Heroku').encode())
+            conn.send((self.generate_headers(200)+'Hi I am in Heroku').encode())
             conn.close()
             # self.clients.append((conn, addr))
             # print(addr)

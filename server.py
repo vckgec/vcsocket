@@ -1,4 +1,4 @@
-from websocket_server import WebsocketServer
+from wshttp import WebsocketHttpServer
 import json
 class Server:
     clients = {}
@@ -21,11 +21,11 @@ class Server:
             try:
                 server.send_message(self.clients[1],json.dumps({'reply_channel':client['id'],'message':msg}))
             except:
-                server.send_message(client,'Head client not found')
+                server.respond(client,msg)
                 
 
     def __init__(self,ip,port):
-        server = WebsocketServer(port,ip)
+        server = WebsocketHttpServer(port, ip)
         server.set_fn_client_left(self.client_left)
         server.set_fn_new_client(self.new_client)
         server.set_fn_message_received(self.msg_received)

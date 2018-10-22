@@ -3,8 +3,8 @@ import socketserver  # In Python 2 use "import SocketServer" instead
 
 class RequestHandler(socketserver.StreamRequestHandler):
     def handle(self):
-        command = self.rfile.readline()[5:-11].decode('UTF-8')
-        print(command)
+        print(self.request.recv(1024))
+        # command = self.rfile.readline()[5:-11].decode('UTF-8')
 
         if command == 'sleep':
             self.respond('Going to sleep')
@@ -24,6 +24,6 @@ class RequestHandler(socketserver.StreamRequestHandler):
         self.wfile.write((headers + '\r\n\r\n' + body).encode('UTF-8'))
 
 
-# HOST, PORT = '0.0.0.0', 8000
-# print("Listening on http://%s:%d" % (HOST, PORT))
-# socketserver.TCPServer((HOST, PORT), RequestHandler).serve_forever()
+HOST, PORT = '0.0.0.0', 8000
+print("Listening on http://%s:%d" % (HOST, PORT))
+socketserver.TCPServer((HOST, PORT), RequestHandler).serve_forever()

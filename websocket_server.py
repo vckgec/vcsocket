@@ -297,6 +297,7 @@ class WebSocketHandler(StreamRequestHandler):
         upgrade = re.search('\nupgrade[\s]*:[\s]*websocket', message.lower())
         if not upgrade:
             self.keep_alive = False
+            print("heres")
             return
         key = re.search('\n[sS]ec-[wW]eb[sS]ocket-[kK]ey[\s]*:[\s]*(.*)\r\n', message)
         if key:

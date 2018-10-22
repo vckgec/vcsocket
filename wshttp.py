@@ -313,7 +313,7 @@ class WebSocketHttpHandler(StreamRequestHandler):
         headers = '\r\n'.join([
             'HTTP/1.1 200 OK',
             'Connection: close',
-            'Content-Type: text/plain; charset=UTF-8',
+            'Content-Type: text/html; charset=UTF-8',
             'Content-Length: %d' % len(body.encode('UTF-8')),
             'Access-Control-Allow-Origin: *'
         ])

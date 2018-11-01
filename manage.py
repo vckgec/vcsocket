@@ -14,6 +14,7 @@
 #         print(e)
 
 #!/usr/bin/env python
+import re
 import sys
 import logging
 import socket
@@ -34,12 +35,10 @@ def calculate_sec_websocket_accept(key):
     return response_key.decode('ASCII')
 
 def get_header(request):
-    headers = request.decode().split("\r\n")
     if b"Connection: Upgrade" in request and b"Upgrade: websocket" in request:
-        for h in headers:
-            if "Sec-WebSocket-Key" in h:
-                key = h.split(" ")[1]
-        print("Key",key)
+        key = re.search(b'\n[sS]ec-[wW]eb[sS]ocket-[kK]ey[\s]*:[\s]*(.*)\r\n',request)
+        if key:
+            key = key.group(1)
         header = 'HTTP/1.1 101 Switching Protocols\r\n'\
                 'Upgrade: websocket\r\n'              \
                 'Connection: Upgrade\r\n'             \

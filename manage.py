@@ -29,8 +29,8 @@ logger = logging.getLogger()
 clients = {}
 
 def calculate_sec_websocket_accept(key):
-    GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-    sha1_hash = sha1((key+GUID).encode())
+    GUID = b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    sha1_hash = sha1(key+GUID)
     response_key = b64encode(sha1_hash.digest()).strip()
     return response_key.decode('ASCII')
 

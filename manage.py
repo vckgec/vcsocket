@@ -36,6 +36,7 @@ def calculate_sec_websocket_accept(key):
 def get_header(request):
     headers = request.decode().split("\r\n")
     if b"Connection: Upgrade" in request and b"Upgrade: websocket" in request:
+        print(headers)
         for h in headers:
             if "Sec-WebSocket-Key" in h:
                 key = h.split(" ")[1]

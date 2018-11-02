@@ -63,6 +63,7 @@ def main(host='0.0.0.0', port=5005):
         try:
             conn, addr = s.accept()
             request_header = conn.recv(1024)
+            print(request_header)
             response_header = get_header(request_header)
             conn.send(response_header)
         except socket.timeout:

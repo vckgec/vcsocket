@@ -71,8 +71,8 @@ def main(host='0.0.0.0', port=5005):
             continue
 
         logger.info('connection address: %s', addr)
-        data = recv_msg(conn)
-        if data:
+        try:
+            data = recv_msg(conn)
             priv_addr = msg_to_addr(data)
             send_msg(conn, addr_to_msg(addr))
             data = recv_msg(conn)
@@ -94,7 +94,10 @@ def main(host='0.0.0.0', port=5005):
                 send_msg(c2.conn, c1.peer_msg())
                 clients.pop(addr1)
                 clients.pop(addr2)
-        conn.close()
+                conn.close()
+                break
+        except:
+            print("Fake Request")
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')

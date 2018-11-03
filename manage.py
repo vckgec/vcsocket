@@ -14,11 +14,12 @@
 #         print(e)
 
 #!/usr/bin/env python
+import re
 import sys
 import logging
 import socket
 import struct
-import re
+import os
 from util import *
 from hashlib import sha1
 from base64 import b64encode
@@ -28,13 +29,12 @@ logger = logging.getLogger()
 clients = {}
 
 def calculate_sec_websocket_accept(key):
-    GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
-    sha1_hash = sha1((key+GUID).encode())
+    GUID = b'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
+    sha1_hash = sha1(key+GUID)
     response_key = b64encode(sha1_hash.digest()).strip()
     return response_key.decode('ASCII')
 
 def get_header(request):
-    headers = request.decode().split("\r\n")
     if b"Connection: Upgrade" in request and b"Upgrade: websocket" in request:
         key = re.search(b'\n[sS]ec-[wW]eb[sS]ocket-[kK]ey[\s]*:[\s]*(.*)\r\n',request)
         if key:
@@ -63,8 +63,6 @@ def main(host='0.0.0.0', port=5005):
         try:
             conn, addr = s.accept()
             request_header = conn.recv(1024)
-            print(request_header)
-            # re.search()
             response_header = get_header(request_header)
             conn.send(response_header)
         except socket.timeout:
@@ -98,6 +96,7 @@ def main(host='0.0.0.0', port=5005):
                 break
         except:
             print("Fake Request")
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')

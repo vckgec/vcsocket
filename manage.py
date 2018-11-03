@@ -78,7 +78,6 @@ def main(host='0.0.0.0', port=5005):
             if data_addr == addr:
                 logger.info('client reply matches')
                 ip = re.search(b'X-Forwarded-For[\s]*:[\s]*(.*)\r\n',request_header)
-                print("got",ip)
                 if ip:
                     ip = ip.group(1).decode()
                     addr = (ip,addr[1])

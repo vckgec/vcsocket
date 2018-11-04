@@ -77,10 +77,10 @@ def main(host='0.0.0.0', port=5005):
             data_addr = msg_to_addr(data)
             if data_addr == addr:
                 logger.info('client reply matches')
-                ip = re.search(b'X-Forwarded-For[\s]*:[\s]*(.*)\r\n',request_header)
-                if ip:
-                    ip = ip.group(1).decode()
-                    addr = (ip,addr[1])
+                # ip = re.search(b'X-Forwarded-For[\s]*:[\s]*(.*)\r\n',request_header)
+                # if ip:
+                #     ip = ip.group(1).decode()
+                #     addr = (ip,addr[1])
                 clients[addr] = Client(conn, addr, priv_addr)
             else:
                 logger.info('client reply did not match')
@@ -96,7 +96,7 @@ def main(host='0.0.0.0', port=5005):
                 send_msg(c2.conn, c1.peer_msg())
                 clients.pop(addr1)
                 clients.pop(addr2)
-                conn.close()
+                # conn.close()
                 break
         except:
             print("Fake Request")

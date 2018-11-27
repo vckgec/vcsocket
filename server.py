@@ -11,11 +11,8 @@ class Server:
 
     def new_client(self,client, server):
         self.clients[client['id']] = client
-        server.send_message(client,'Head client not found')
-
 
     def msg_received(self,client, server, msg):
-        print(msg)
         if client['id']==1:
             message = json.loads(msg)
             server.send_message(self.clients[int(message['reply_channel'])], json.dumps(message['message']))

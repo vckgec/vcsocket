@@ -1,4 +1,4 @@
-from wshttp import WebsocketHttpServer
+from websocket_server import WebsocketServer
 import json
 class Server:
     clients = {}
@@ -10,12 +10,10 @@ class Server:
             pass
 
     def new_client(self,client, server):
-        print(client)
         self.clients[client['id']] = client
 
 
     def msg_received(self,client, server, msg):
-        print(msg)
         if client['id']==1:
             message = json.loads(msg)
             server.send_message(self.clients[int(message['reply_channel'])], json.dumps(message['message']))
@@ -27,7 +25,7 @@ class Server:
                 
 
     def __init__(self,ip,port):
-        server = WebsocketHttpServer(port,ip)
+        server = WebsocketServer(port,ip)
         server.set_fn_client_left(self.client_left)
         server.set_fn_new_client(self.new_client)
         server.set_fn_message_received(self.msg_received)

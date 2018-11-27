@@ -32,7 +32,7 @@ logging.basicConfig()
 +---------------------------------------------------------------+
 '''
 
-FIN = 0x80
+FIN    = 0x80
 OPCODE = 0x0f
 MASKED = 0x80
 PAYLOAD_LEN = 0x7f
@@ -40,11 +40,11 @@ PAYLOAD_LEN_EXT16 = 0x7e
 PAYLOAD_LEN_EXT64 = 0x7f
 
 OPCODE_CONTINUATION = 0x0
-OPCODE_TEXT = 0x1
-OPCODE_BINARY = 0x2
-OPCODE_CLOSE_CONN = 0x8
-OPCODE_PING = 0x9
-OPCODE_PONG = 0xA
+OPCODE_TEXT         = 0x1
+OPCODE_BINARY       = 0x2
+OPCODE_CLOSE_CONN   = 0x8
+OPCODE_PING         = 0x9
+OPCODE_PONG         = 0xA
 
 
 # -------------------------------- API ---------------------------------
@@ -83,16 +83,32 @@ class API():
     def send_message(self, client, msg):
         self._unicast_(client, msg)
 
-    def respond(self,client,msg):
-        self._send_respond(client,msg)
-
     def send_message_to_all(self, msg):
         self._multicast_(msg)
 
 
 # ------------------------- Implementation -----------------------------
 
-class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
+class WebsocketServer(ThreadingMixIn, TCPServer, API):
+    """
+	A websocket server waiting for clients to connect.
+    Args:
+        port(int): Port to bind to
+        host(str): Hostname or IP to listen for connections. By default 127.0.0.1
+            is being used. To accept connections from any client, you should use
+            0.0.0.0.
+        loglevel: Logging level from logging module to use for logging. By default
+            warnings and errors are being logged.
+    Properties:
+        clients(list): A list of connected clients. A client is a dictionary
+            like below.
+                {
+                 'id'      : id,
+                 'handler' : handler,
+                 'address' : (addr, port)
+                }
+    """
+
     allow_reuse_address = True
     daemon_threads = True  # comment to keep threads alive until finished
 
@@ -102,7 +118,7 @@ class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
     def __init__(self, port, host='127.0.0.1', loglevel=logging.WARNING):
         logger.setLevel(loglevel)
         self.port = port
-        TCPServer.__init__(self, (host, port), WebSocketHttpHandler)
+        TCPServer.__init__(self, (host, port), WebSocketHandler)
 
     def _message_received_(self, handler, msg):
         self.message_received(self.handler_to_client(handler), self, msg)
@@ -113,9 +129,9 @@ class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
     def _pong_received_(self, handler, msg):
         pass
 
-    def _new_client_(self, handler, query):
+    def _new_client_(self, handler,query):
         if not query and query != 'apikey=master':
-            self.id_counter += 1
+            self.id_counter += 1 
         client = {
             'id': self.id_counter if not query and query != 'apikey=master' else 1,
             'handler': handler,
@@ -123,10 +139,6 @@ class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
         }
         self.clients.append(client)
         self.new_client(client, self)
-
-    # have to implement
-    def _new_http_client(self,handler,client):
-        self.new_http_client(client, self)
 
     def _client_left_(self, handler):
         client = self.handler_to_client(handler)
@@ -136,9 +148,6 @@ class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
 
     def _unicast_(self, to_client, msg):
         to_client['handler'].send_message(msg)
-
-    def _send_respond(self,to_client,msg):
-        to_client['handler'].respond(msg)
 
     def _multicast_(self, msg):
         for client in self.clients:
@@ -150,7 +159,7 @@ class WebsocketHttpServer(ThreadingMixIn, TCPServer, API):
                 return client
 
 
-class WebSocketHttpHandler(StreamRequestHandler):
+class WebSocketHandler(StreamRequestHandler):
 
     def __init__(self, socket, addr, server):
         self.server = server
@@ -183,7 +192,7 @@ class WebSocketHttpHandler(StreamRequestHandler):
         except ValueError as e:
             b1, b2 = 0, 0
 
-        fin = b1 & FIN
+        fin    = b1 & FIN
         opcode = b1 & OPCODE
         masked = b2 & MASKED
         payload_length = b2 & PAYLOAD_LEN
@@ -235,7 +244,6 @@ class WebSocketHttpHandler(StreamRequestHandler):
     def send_pong(self, message):
         self.send_text(message, OPCODE_PONG)
 
-
     def send_text(self, message, opcode=OPCODE_TEXT):
         """
         Important: Fragmented(=continuation) messages are not supported since
@@ -244,22 +252,19 @@ class WebSocketHttpHandler(StreamRequestHandler):
 
         # Validate message
         if isinstance(message, bytes):
-            # this is slower but ensures we have UTF-8
-            message = try_decode_UTF8(message)
+            message = try_decode_UTF8(message)  # this is slower but ensures we have UTF-8
             if not message:
-                logger.warning(
-                    "Can\'t send message, message is not valid UTF-8")
+                logger.warning("Can\'t send message, message is not valid UTF-8")
                 return False
-        elif sys.version_info < (3, 0) and (isinstance(message, str) or isinstance(message, unicode)):
+        elif sys.version_info < (3,0) and (isinstance(message, str) or isinstance(message, unicode)):
             pass
         elif isinstance(message, str):
             pass
         else:
-            logger.warning(
-                'Can\'t send message, message has to be a string or bytes. Given type is %s' % type(message))
+            logger.warning('Can\'t send message, message has to be a string or bytes. Given type is %s' % type(message))
             return False
 
-        header = bytearray()
+        header  = bytearray()
         payload = encode_to_UTF8(message)
         payload_length = len(payload)
 
@@ -281,8 +286,7 @@ class WebSocketHttpHandler(StreamRequestHandler):
             header.extend(struct.pack(">Q", payload_length))
 
         else:
-            raise Exception(
-                "Message is too big. Consider breaking it into chunks.")
+            raise Exception("Message is too big. Consider breaking it into chunks.")
             return
 
         self.request.send(header + payload)
@@ -293,11 +297,8 @@ class WebSocketHttpHandler(StreamRequestHandler):
         upgrade = re.search('\nupgrade[\s]*:[\s]*websocket', message.lower())
         if not upgrade:
             self.keep_alive = False
-            self.server._new_client_(self, query)
-            self.server._message_received_(self,message)
             return
-        key = re.search(
-            '\n[sS]ec-[wW]eb[sS]ocket-[kK]ey[\s]*:[\s]*(.*)\r\n', message)
+        key = re.search('\n[sS]ec-[wW]eb[sS]ocket-[kK]ey[\s]*:[\s]*(.*)\r\n', message)
         if key:
             key = key.group(1)
         else:
@@ -307,25 +308,15 @@ class WebSocketHttpHandler(StreamRequestHandler):
         response = self.make_handshake_response(key)
         self.handshake_done = self.request.send(response.encode())
         self.valid_client = True
-        self.server._new_client_(self, query)
-
-    def respond(self, body):
-        headers = '\r\n'.join([
-            'HTTP/1.1 200 OK',
-            'Connection: close',
-            'Content-Type: text/html; charset=UTF-8',
-            'Content-Length: %d' % len(body.encode('UTF-8')),
-            'Access-Control-Allow-Origin: *'
-        ])
-        self.wfile.write((headers + '\r\n\r\n' + body).encode('UTF-8'))
+        self.server._new_client_(self,query)
 
     def make_handshake_response(self, key):
         return \
-            'HTTP/1.1 101 Switching Protocols\r\n'\
-            'Upgrade: websocket\r\n'              \
-            'Connection: Upgrade\r\n'             \
-            'Sec-WebSocket-Accept: %s\r\n'        \
-            '\r\n' % self.calculate_response_key(key)
+          'HTTP/1.1 101 Switching Protocols\r\n'\
+          'Upgrade: websocket\r\n'              \
+          'Connection: Upgrade\r\n'             \
+          'Sec-WebSocket-Accept: %s\r\n'        \
+          '\r\n' % self.calculate_response_key(key)
 
     def calculate_response_key(self, key):
         GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'

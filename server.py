@@ -10,6 +10,7 @@ class Server:
             pass
 
     def new_client(self,client, server):
+        print(client)
         self.clients[client['id']] = client
 
 

@@ -11,6 +11,7 @@ class Server:
 
     def new_client(self,client, server):
         self.clients[client['id']] = client
+        server.send_message(client,'Head client not found')
 
 
     def msg_received(self,client, server, msg):
